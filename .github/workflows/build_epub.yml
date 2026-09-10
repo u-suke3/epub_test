@@ -4,9 +4,9 @@ on:
     branches:
       - main
     paths:
-      - 'source.html'
-      - 'script.awk'
-      - 'epub_template/**'
+      - 'book-template_2025-09-11/**'
+#     - 'source.html'
+#     - 'script.awk'
 jobs:
   epub-pipeline:
     runs-on: ubuntu-latest
@@ -15,24 +15,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK and Epubcheck
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+#     - name: Set up JDK and Epubcheck
+#       uses: actions/setup-java@v4
+#       with:
+#         distribution: 'temurin'
+#         java-version: '17'
 
       - name: Generate EPUB and Package
         run: |
-          cp -r epub_template/ epub_workspace/
-          awk -f script.awk source.html
-          mv output_*.html epub_workspace/OEBPS/ 2>/dev/null || true
-          cd epub_workspace
-          zip -X0 ../book.epub mimetype
-          zip -rX9 ../book.epub * -x mimetype
+          cd book-template_2025-09-11/
+          zip -X0  ../book-template_2025-09-11.epub mimetype
+          zip -rX9 ../book-template_2025-09-11.epub * -x mimetype
           cd ..
+#         cp -r book-template_2025-09-11/ epub_workspace/
+#         awk -f script.awk source.html
+#         mv output_*.html epub_workspace/OEBPS/ 2>/dev/null || true
+#         cd epub_workspace
+#         zip -X0 ../book.epub mimetype
+#         zip -rX9 ../book.epub * -x mimetype
+#         cd ..
       - name: Verify EPUB and Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: epub-package
           path: |
-            book.epub          retention-days: 14
+            book-template_2025-09-11.epub          retention-days: 14
