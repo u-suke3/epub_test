@@ -39,4 +39,5 @@ jobs:
         with:
           name: epub-package
           path: |
-            book-template_2025-09-11.epub          retention-days: 14
+            book-template_2025-09-11.epub
+          retention-days: 14
