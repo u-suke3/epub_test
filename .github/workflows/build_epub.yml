@@ -29,7 +29,10 @@ jobs:
 
       # 3. W3C公式の epubcheck の最新安定版をダウンロード
       - name: Download epubcheck
-        run: sudo apt install -y epubcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get upgrade -y
+          sudo apt-get install -y epubcheck
 
       # 5. 分割・生成されたファイル群を「EPUB形式」でZIPアーカイブ化
       - name: Generate EPUB and Package
