@@ -1,4 +1,8 @@
-name: Build and Verify EPUB (with Template)
+name: Build and Verify EPUB
+#
+# このワークフローのオリジナルは
+# Google Gemini の生成物です。
+#
 on:
   push:
     branches:
@@ -12,15 +16,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. コードのチェックアウト
       - name: Checkout repository
         uses: actions/checkout@v5
 
-#     - name: Set up JDK and Epubcheck
-#       uses: actions/setup-java@v4
-#       with:
-#         distribution: 'temurin'
-#         java-version: '17'
+      # 2. Java環境のセットアップ (epubcheck実行用)
+      - name: Set up JDK and Epubcheck
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
+      # 3. W3C公式の epubcheck の最新安定版をダウンロード
+      - name: Download epubcheck
+        run: sudo apt install -y epubcheck
+
+      # 5. 分割・生成されたファイル群を「EPUB形式」でZIPアーカイブ化
       - name: Generate EPUB and Package
         run: |
           cd book-template_2025-09-11/
@@ -34,10 +45,30 @@ jobs:
 #         zip -X0 ../book.epub mimetype
 #         zip -rX9 ../book.epub * -x mimetype
 #         cd ..
+      # 6. epubcheck.jar を使用したEPUBファイルの自動検証 & ログ保存
+      - name: Verify EPUB with epubcheck
+        run: |
+          # 検証を実行し、結果（標準出力とエラー出力の両方）を「epubcheck_log.txt」に保存
+          # ※epubcheckはエラーがあると終了コードを返すため、一時的にスクリプトが即終了するのを防ぎます
+          set +e
+          epubcheck book-template_2025-09-11.epub > epubcheck_log.txt 2>&1
+          EPUBCHECK_STATUS=$?
+          set -e
+          
+          # 診断メッセージをGitHub Actionsのログ画面にも表示させる
+          cat epubcheck_log.txt
+          
+          # 警告(1)やエラー(2以上)があった場合でも、ログファイルを保存するために
+          # ここではあえてビルドを失敗させず、正常終了(0)として次へ進めます。
+          echo "Epubcheck exited with code: $EPUBCHECK_STATUS"
+
+      # 7. 生成された「EPUBファイル」と「診断ログ」を成果物としてGitHubに保存
       - name: Verify EPUB and Upload Artifacts
         uses: actions/upload-artifact@v6
         with:
           name: epub-package
           path: |
             book-template_2025-09-11.epub
+            epubcheck_log.txt
           retention-days: 14
+
